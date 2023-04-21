@@ -21,9 +21,9 @@ namespace WebAdvertisementApi.Controllers
         /// Получает 1 объявление по id из бд
         /// </summary>
         /// <param name="id">Id объявления</param>
-        /// <returns>Строку подтверждения успеха</returns>
+        /// <returns>Возвращает 1 объявление по id из бд</returns>
         [HttpGet("Info")]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Advertisement), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Info(Guid id)
         {
@@ -37,9 +37,9 @@ namespace WebAdvertisementApi.Controllers
         /// Получает 1 объявление по id из бд
         /// </summary>
         /// <param name="id">Id объявления в формате JSON</param>
-        /// <returns>Строку подтверждения успеха</returns>
+        /// <returns>Возвращает 1 объявление по id из бд</returns>
         [HttpGet("InfoJSON")]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Advertisement), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> InfoJSON([FromBody] Guid id) => await Info(id);
     }
