@@ -43,6 +43,10 @@ namespace WebAdvertisementApi.Controllers
                 .Include(i => i.Image)
                 .FirstOrDefaultAsync(i=>i.Id == editAdvertisement.Id);
 
+            if (adv == null)
+            {
+                return Ok(new { Message = "Edit error" });
+            }
             _db.Advertisements.Remove(adv);
 
             var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == editAdvertisement.UserId);
