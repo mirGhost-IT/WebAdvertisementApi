@@ -18,7 +18,7 @@ namespace LibAdvertisementDB
 
         public byte[] Img { get; set; }
 
-        [Required(ErrorMessage = "Поле AdvertisementId обязательно для заполнения)]
+        [Required(ErrorMessage = "Поле AdvertisementId обязательно для заполнения")]
         public Guid AdvertisementId { get; set; }
 
         public Advertisement Advertisement { get; set; }
