@@ -1,5 +1,7 @@
 ﻿using LibAdvertisementDB;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebAdvertisementApi.Models;
 
 namespace WebAdvertisementApi.Controllers
 {
@@ -18,14 +20,12 @@ namespace WebAdvertisementApi.Controllers
         /// <summary>
         /// Добовляет новое объявление
         /// </summary>
-        /// <param name="advertisement">Объявление</param>
-        /// <param name="image">Картинка</param>
-        /// <param name="userId">Id пользователя, которому принадлежит объявление</param>
+        /// <param name="addAdvertisement">Модель объявления для добавления в формате JSON</param>
         /// <returns>Возвращает строку подтверждения успеха или не успеха</returns>
         [HttpPost("Add")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Add(Advertisement advertisement, IFormFile image, Guid userId)
+        public async Task<IActionResult> Add(AddAdvertisement addAdvertisement)
         {
             if (!ModelState.IsValid)
             {
@@ -33,23 +33,33 @@ namespace WebAdvertisementApi.Controllers
             }
             DateTime dateTimeUnspecified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
             DateTime dateTimeUtc = dateTimeUnspecified.ToUniversalTime();
-            advertisement.Created = dateTimeUtc;
+            addAdvertisement.Created = dateTimeUtc;
 
-            dateTimeUtc = advertisement.ExpirationDate.ToUniversalTime();
+            dateTimeUtc = addAdvertisement.ExpirationDate.ToUniversalTime();
             DateTime expirationDate = dateTimeUtc;
-            advertisement.ExpirationDate = expirationDate;
+            addAdvertisement.ExpirationDate = expirationDate;
 
-            advertisement.UserId = userId;
+            var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == addAdvertisement.UserId);
+
+            Advertisement advertisement = new Advertisement
+            {
+                Text = addAdvertisement.Text,
+                Number = addAdvertisement.Number,
+                Rating = addAdvertisement.Rating,
+                UserId = addAdvertisement.UserId,
+                User = user,
+                Created = addAdvertisement.Created,
+                ExpirationDate = addAdvertisement.ExpirationDate
+            };
+
             await _db.Advertisements.AddAsync(advertisement);
 
-            Image img = new Image();
-            img.AdvertisementId = advertisement.Id;
-            img.Name = image.FileName;
-            using (var memoryStream = new MemoryStream())
-            {
-                await image.CopyToAsync(memoryStream);
-                img.Img = memoryStream.ToArray();
-            }
+            Image img = new Image {Img = addAdvertisement.Img,
+                Name = addAdvertisement.NameImg,
+                AdvertisementId = advertisement.Id,
+                Advertisement = advertisement
+            };
+            
             img.AdvertisementId = advertisement.Id;
 
             await _db.Images.AddAsync(img);
@@ -58,18 +68,5 @@ namespace WebAdvertisementApi.Controllers
 
             return Ok(new { Message = "Add successfully" });
         }
-        /// <summary>
-        /// Добовляет новое объявление
-        /// </summary>
-        /// <param name="advertisement">Объявление в формате JSON</param>
-        /// <param name="image">Картинка в формате JSON</param>
-        /// <param name="userId">Id пользователя, которому принадлежит объявление в формате JSON</param>
-        /// <returns>Возвращает строку подтверждения успеха или не успеха</returns>
-        [HttpPost("AddJSON")]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> AddJSON([FromBody]Advertisement advertisement,
-            [FromBody] IFormFile image,
-            [FromBody] Guid userId) => await Add(advertisement, image, userId);
     }
 }

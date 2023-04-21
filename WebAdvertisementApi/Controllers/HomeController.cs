@@ -243,7 +243,7 @@ namespace WebAdvertisementApi.Controllers
         /// <summary>
         /// Получить фильтрацию по дате
         /// </summary>
-        /// <param name="myDate">Строка поиска </param>
+        /// <param name="myDate">Даты с какого по какое в формате JSON</param>
         /// <returns>Возврашает список объявлений отфильтрованных по дате из бд</returns>
         [HttpGet("DateFiltering")]
         [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
@@ -258,16 +258,6 @@ namespace WebAdvertisementApi.Controllers
 
             return Ok(adv);
         }
-
-        /// <summary>
-        /// Получить фильтрацию по дате
-        /// </summary>
-        /// <param name="myDate">Строка поиска в формате JSON</param>
-        /// <returns>Возврашает список объявлений отфильтрованных по дате из бд</returns>
-        [HttpPost("DateFilteringJSON")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DateFilteringJSON([FromBody] MyDate myDate) => await DateFiltering(myDate);
 
         /// <summary>
         /// Удаляет объявление по id из бд
