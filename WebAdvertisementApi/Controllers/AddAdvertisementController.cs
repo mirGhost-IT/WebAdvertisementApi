@@ -54,7 +54,7 @@ namespace WebAdvertisementApi.Controllers
 
             await _db.Advertisements.AddAsync(advertisement);
 
-            Image img = new Image {Img = addAdvertisement.Img,
+            LibAdvertisementDB.Image img = new LibAdvertisementDB.Image {Img = addAdvertisement.Img,
                 Name = addAdvertisement.NameImg,
                 AdvertisementId = advertisement.Id,
                 Advertisement = advertisement
