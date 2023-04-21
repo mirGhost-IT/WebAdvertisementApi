@@ -233,7 +233,7 @@ namespace WebAdvertisementApi.Controllers
         /// <summary>
         /// Получить фильтрацию по поиску
         /// </summary>
-        /// <param name="str">Строка поиска</param>
+        /// <param name="str">Строка поиска в формате JSON</param>
         /// <returns>Возврашает список объявлений отфильтрованных по поиску из бд</returns>
         [HttpPost("SearchJSON")]
         [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
@@ -243,7 +243,7 @@ namespace WebAdvertisementApi.Controllers
         /// <summary>
         /// Получить фильтрацию по дате
         /// </summary>
-        /// <param name="myDate">Строка поиска</param>
+        /// <param name="myDate">Строка поиска </param>
         /// <returns>Возврашает список объявлений отфильтрованных по дате из бд</returns>
         [HttpGet("DateFiltering")]
         [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
@@ -262,12 +262,42 @@ namespace WebAdvertisementApi.Controllers
         /// <summary>
         /// Получить фильтрацию по дате
         /// </summary>
-        /// <param name="myDate">Строка поиска</param>
+        /// <param name="myDate">Строка поиска в формате JSON</param>
         /// <returns>Возврашает список объявлений отфильтрованных по дате из бд</returns>
         [HttpPost("DateFilteringJSON")]
         [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DateFilteringJSON([FromBody] MyDate myDate) => await DateFiltering(myDate);
+
+        /// <summary>
+        /// Удаляет объявление по id из бд
+        /// </summary>
+        /// <param name="id">Id объявления</param>
+        /// <returns>Строку подтверждения успеха</returns>
+        [HttpDelete("Delete")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var delete = await _db.Advertisements
+                .Include(i => i.User)
+                .Include(i => i.Image)
+                .Where(i => i.Id == id).ToListAsync();
+            _db.RemoveRange(delete);
+            await _db.SaveChangesAsync();
+
+            return Ok(new {Message = "Delete successfully"});
+        }
+
+        /// <summary>
+        /// Удаляет объявление по id из бд
+        /// </summary>
+        /// <param name="id">Id объявления в формате JSON</param>
+        /// <returns>Строку подтверждения успеха</returns>
+        [HttpDelete("DeleteJSON")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteJSON([FromBody] Guid id) => await Delete(id);
     }
 }
 
