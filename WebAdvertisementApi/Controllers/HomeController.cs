@@ -1,7 +1,9 @@
 ﻿using LibAdvertisementDB;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using WebAdvertisementApi.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WebAdvertisementApi.Controllers
 {
@@ -190,24 +192,43 @@ namespace WebAdvertisementApi.Controllers
         /// Получить изображение
         /// </summary>
         /// <param name="id">Id объявления</param>
-        /// <returns>Возвращает изображение определенного объявления из бд</returns>
-        //[HttpGet("GetImage/{id}")]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //[ProducesResponseType(typeof(Image), StatusCodes.Status200OK)]
-        //[Produces("image/jpeg")]
-        //public async Task<IActionResult> GetImage(Guid id)
-        //{
+        /// <param name="width">Ширина изображения</param>
+        /// <param name="height">Высота изображения</param>
+        /// <returns>Возвращает изображение определенного объявления из бд заданных размеров</returns>
+        [HttpGet("GetImageResize")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(SixLabors.ImageSharp.Image), StatusCodes.Status200OK)]
+        [Produces("image/jpeg")]
+        public async Task<IActionResult> GetImageResize(Guid id, int width, int height)
+        {
+            var advertisement = await _db.Advertisements.FindAsync(id);
+            if (advertisement == null)
+            {
+                return NotFound();
+            }
 
-        //    var image = await _db.Images.FirstOrDefaultAsync(x => x.AdvertisementId == id);
-        //    if (image != null)
-        //    {
-        //        return File(image.Img, "image/jpeg");
-        //    }
-        //    else
-        //    {
-        //        return NotFound();
-        //    }
-        //}
+            var imagePath = advertisement.ImageUrl;
+            var imagePhysicalPath = Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/'));
+            if (!System.IO.File.Exists(imagePhysicalPath))
+            {
+                return NotFound();
+            }
+
+            using (var image = SixLabors.ImageSharp.Image.Load(imagePhysicalPath))
+            {
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(width, height),
+                    Mode = ResizeMode.Max
+                }));
+
+                using (var ms = new MemoryStream())
+                {
+                    image.Save(ms, new JpegEncoder());
+                    return File(ms.ToArray(), "image/jpeg");
+                }
+            }
+        }
 
         /// <summary>
         /// Получить фильтрацию по поиску
