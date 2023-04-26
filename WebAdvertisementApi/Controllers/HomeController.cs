@@ -11,11 +11,13 @@ namespace WebAdvertisementApi.Controllers
     {
         private readonly AdvertisementContext _db;
         private readonly ILogger<HomeController> _logger;
+        private readonly IWebHostEnvironment _environment;
 
-        public HomeController(ILogger<HomeController> logger, AdvertisementContext db)
+        public HomeController(ILogger<HomeController> logger, AdvertisementContext db, IWebHostEnvironment environment)
         {
             _logger = logger;
             _db = db;
+            _environment = environment;
         }
 
         /// <summary>
@@ -289,17 +291,27 @@ namespace WebAdvertisementApi.Controllers
         /// <summary>
         /// Изменение объявления
         /// </summary>
-        /// <param name="editAdvertisement">Модель объявления для изменения в формате JSON</param>
+        /// <param name="editAdvertisement">Модель объявления для изменения в формате FromForm</param>
         /// <returns>Возвращает строку подтверждения успеха или не успеха</returns>
         [HttpPut("Edit")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Edit(EditAdvertisement editAdvertisement)
+        public async Task<IActionResult> Edit([FromForm] EditAdvertisement editAdvertisement)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(editAdvertisement.ImageUrl.FileName);
+            string filePath = Path.Combine(_environment.WebRootPath, "images", fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await editAdvertisement.ImageUrl.CopyToAsync(stream);
+            }
+
+            string imageUrl = "/images/" + fileName;
+
             DateTime dateTimeUtc = editAdvertisement.Created.ToUniversalTime();
             editAdvertisement.Created = dateTimeUtc;
 
@@ -324,7 +336,7 @@ namespace WebAdvertisementApi.Controllers
                 Number = editAdvertisement.Number,
                 Rating = editAdvertisement.Rating,
                 UserId = editAdvertisement.UserId,
-                ImageUrl = editAdvertisement.ImageUrl,
+                ImageUrl = imageUrl,
                 User = user,
                 Created = editAdvertisement.Created,
                 ExpirationDate = editAdvertisement.ExpirationDate
@@ -339,24 +351,27 @@ namespace WebAdvertisementApi.Controllers
         /// <summary>
         /// Добовляет новое объявление
         /// </summary>
-        /// <param name="addAdvertisement">Модель объявления для добавления в формате JSON</param>
+        /// <param name="addAdvertisement">Модель объявления для добавления в формате FromForm</param>
         /// <returns>Возвращает строку подтверждения успеха или не успеха</returns>
         [HttpPost("Add")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Add(AddAdvertisement addAdvertisement)
+
+        public async Task<IActionResult> Add([FromForm] AddAdvertisement addAdvertisement)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            DateTime dateTimeUnspecified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
-            DateTime dateTimeUtc = dateTimeUnspecified.ToUniversalTime();
-            addAdvertisement.Created = dateTimeUtc;
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(addAdvertisement.ImageUrl.FileName);
+            string filePath = Path.Combine(_environment.WebRootPath, "images", fileName);
 
-            dateTimeUtc = addAdvertisement.ExpirationDate.ToUniversalTime();
-            DateTime expirationDate = dateTimeUtc;
-            addAdvertisement.ExpirationDate = expirationDate;
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await addAdvertisement.ImageUrl.CopyToAsync(stream);
+            }
+
+            string imageUrl = "/images/" + fileName;
 
             var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == addAdvertisement.UserId);
 
@@ -366,16 +381,18 @@ namespace WebAdvertisementApi.Controllers
                 Number = addAdvertisement.Number,
                 Rating = addAdvertisement.Rating,
                 UserId = addAdvertisement.UserId,
-                ImageUrl = addAdvertisement.ImageUrl,
-                User = user,
-                Created = addAdvertisement.Created,
-                ExpirationDate = addAdvertisement.ExpirationDate
+                ImageUrl = imageUrl,
+                User = user
             };
+            DateTime dateTimeUnspecified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            DateTime dateTimeUtc = dateTimeUnspecified.ToUniversalTime();
+            advertisement.Created = dateTimeUtc;
+
+            dateTimeUtc = addAdvertisement.ExpirationDate.ToUniversalTime();
+            DateTime expirationDate = dateTimeUtc;
+            advertisement.ExpirationDate = expirationDate;
 
             await _db.Advertisements.AddAsync(advertisement);
-
-
-
             await _db.SaveChangesAsync();
 
             return Ok(new { Message = "Add successfully" });

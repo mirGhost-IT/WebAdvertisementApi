@@ -9,6 +9,6 @@
         public int Rating { get; set; }
         public DateTime Created { get; set; }
         public DateTime ExpirationDate { get; set; }
-        public string ImageUrl { get; set; }
+        public IFormFile ImageUrl { get; set; }
     }
 }
