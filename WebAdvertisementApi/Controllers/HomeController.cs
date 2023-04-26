@@ -273,7 +273,7 @@ namespace WebAdvertisementApi.Controllers
             _db.RemoveRange(delete);
             await _db.SaveChangesAsync();
 
-            return Ok(new {Message = "Delete successfully"});
+            return Ok(new { Message = "Delete successfully" });
         }
 
         /// <summary>
@@ -285,6 +285,125 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteJSON([FromBody] Guid id) => await Delete(id);
+
+        /// <summary>
+        /// Изменение объявления
+        /// </summary>
+        /// <param name="editAdvertisement">Модель объявления для изменения в формате JSON</param>
+        /// <returns>Возвращает строку подтверждения успеха или не успеха</returns>
+        [HttpPut("Edit")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Edit(EditAdvertisement editAdvertisement)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            DateTime dateTimeUtc = editAdvertisement.Created.ToUniversalTime();
+            editAdvertisement.Created = dateTimeUtc;
+
+            dateTimeUtc = editAdvertisement.ExpirationDate.ToUniversalTime();
+            DateTime expirationDate = dateTimeUtc;
+            editAdvertisement.ExpirationDate = expirationDate;
+            var adv = await _db.Advertisements
+                .Include(i => i.User)
+                .FirstOrDefaultAsync(i => i.Id == editAdvertisement.Id);
+
+            if (adv == null)
+            {
+                return Ok(new { Message = "Edit error" });
+            }
+            _db.Advertisements.Remove(adv);
+
+            var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == editAdvertisement.UserId);
+
+            Advertisement advertisement = new Advertisement
+            {
+                Text = editAdvertisement.Text,
+                Number = editAdvertisement.Number,
+                Rating = editAdvertisement.Rating,
+                UserId = editAdvertisement.UserId,
+                ImageUrl = editAdvertisement.ImageUrl,
+                User = user,
+                Created = editAdvertisement.Created,
+                ExpirationDate = editAdvertisement.ExpirationDate
+            };
+
+            await _db.Advertisements.AddAsync(advertisement);
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new { Message = "Edit successfully" });
+        }
+        /// <summary>
+        /// Добовляет новое объявление
+        /// </summary>
+        /// <param name="addAdvertisement">Модель объявления для добавления в формате JSON</param>
+        /// <returns>Возвращает строку подтверждения успеха или не успеха</returns>
+        [HttpPost("Add")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Add(AddAdvertisement addAdvertisement)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            DateTime dateTimeUnspecified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+            DateTime dateTimeUtc = dateTimeUnspecified.ToUniversalTime();
+            addAdvertisement.Created = dateTimeUtc;
+
+            dateTimeUtc = addAdvertisement.ExpirationDate.ToUniversalTime();
+            DateTime expirationDate = dateTimeUtc;
+            addAdvertisement.ExpirationDate = expirationDate;
+
+            var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == addAdvertisement.UserId);
+
+            Advertisement advertisement = new Advertisement
+            {
+                Text = addAdvertisement.Text,
+                Number = addAdvertisement.Number,
+                Rating = addAdvertisement.Rating,
+                UserId = addAdvertisement.UserId,
+                ImageUrl = addAdvertisement.ImageUrl,
+                User = user,
+                Created = addAdvertisement.Created,
+                ExpirationDate = addAdvertisement.ExpirationDate
+            };
+
+            await _db.Advertisements.AddAsync(advertisement);
+
+
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new { Message = "Add successfully" });
+        }
+        /// <summary>
+        /// Получает 1 объявление по id из бд
+        /// </summary>
+        /// <param name="id">Id объявления</param>
+        /// <returns>Возвращает 1 объявление по id из бд</returns>
+        [HttpGet("Info")]
+        [ProducesResponseType(typeof(Advertisement), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Info(Guid id)
+        {
+            var res = await _db.Advertisements
+                .Include(i => i.User)
+                .FirstOrDefaultAsync(i => i.Id == id);
+            return Ok(res);
+        }
+        /// <summary>
+        /// Получает 1 объявление по id из бд
+        /// </summary>
+        /// <param name="id">Id объявления в формате JSON</param>
+        /// <returns>Возвращает 1 объявление по id из бд</returns>
+        [HttpGet("InfoJSON")]
+        [ProducesResponseType(typeof(Advertisement), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> InfoJSON([FromBody] Guid id) => await Info(id);
     }
 }
 
