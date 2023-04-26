@@ -47,6 +47,7 @@ namespace WebAdvertisementApi.Controllers
                 Number = addAdvertisement.Number,
                 Rating = addAdvertisement.Rating,
                 UserId = addAdvertisement.UserId,
+                ImageUrl = addAdvertisement.ImageUrl,
                 User = user,
                 Created = addAdvertisement.Created,
                 ExpirationDate = addAdvertisement.ExpirationDate
@@ -54,15 +55,7 @@ namespace WebAdvertisementApi.Controllers
 
             await _db.Advertisements.AddAsync(advertisement);
 
-            LibAdvertisementDB.Image img = new LibAdvertisementDB.Image {Img = addAdvertisement.Img,
-                Name = addAdvertisement.NameImg,
-                AdvertisementId = advertisement.Id,
-                Advertisement = advertisement
-            };
-            
-            img.AdvertisementId = advertisement.Id;
 
-            await _db.Images.AddAsync(img);
 
             await _db.SaveChangesAsync();
 

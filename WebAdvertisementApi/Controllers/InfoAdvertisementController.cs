@@ -29,7 +29,6 @@ namespace WebAdvertisementApi.Controllers
         {
             var res = await _db.Advertisements
                 .Include(i => i.User)
-                .Include(i => i.Image)
                 .FirstOrDefaultAsync(i => i.Id == id);
             return Ok(res);
         }

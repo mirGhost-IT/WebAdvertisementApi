@@ -189,23 +189,23 @@ namespace WebAdvertisementApi.Controllers
         /// </summary>
         /// <param name="id">Id объявления</param>
         /// <returns>Возвращает изображение определенного объявления из бд</returns>
-        [HttpGet("GetImage/{id}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(Image), StatusCodes.Status200OK)]
-        [Produces("image/jpeg")]
-        public async Task<IActionResult> GetImage(Guid id)
-        {
+        //[HttpGet("GetImage/{id}")]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(typeof(Image), StatusCodes.Status200OK)]
+        //[Produces("image/jpeg")]
+        //public async Task<IActionResult> GetImage(Guid id)
+        //{
 
-            var image = await _db.Images.FirstOrDefaultAsync(x => x.AdvertisementId == id);
-            if (image != null)
-            {
-                return File(image.Img, "image/jpeg");
-            }
-            else
-            {
-                return NotFound();
-            }
-        }
+        //    var image = await _db.Images.FirstOrDefaultAsync(x => x.AdvertisementId == id);
+        //    if (image != null)
+        //    {
+        //        return File(image.Img, "image/jpeg");
+        //    }
+        //    else
+        //    {
+        //        return NotFound();
+        //    }
+        //}
 
         /// <summary>
         /// Получить фильтрацию по поиску
@@ -219,7 +219,6 @@ namespace WebAdvertisementApi.Controllers
         {
             var adv = await _db.Advertisements
             .Include(i => i.User)
-            .Include(i => i.Image)
             .Where(i => i.Text.ToLower().Contains(str.ToLower())
                 || i.Rating.ToString().ToLower().Contains(str.ToLower())
                 || i.User.Name.ToLower().Contains(str.ToLower())
@@ -252,7 +251,6 @@ namespace WebAdvertisementApi.Controllers
         {
             var adv = await _db.Advertisements
                 .Include(i => i.User)
-                .Include(i => i.Image)
                 .Where(i => i.Created <= myDate.endDate.ToUniversalTime() && i.Created >= myDate.startDate.ToUniversalTime())
                 .ToListAsync();
 
@@ -271,7 +269,6 @@ namespace WebAdvertisementApi.Controllers
         {
             var delete = await _db.Advertisements
                 .Include(i => i.User)
-                .Include(i => i.Image)
                 .Where(i => i.Id == id).ToListAsync();
             _db.RemoveRange(delete);
             await _db.SaveChangesAsync();

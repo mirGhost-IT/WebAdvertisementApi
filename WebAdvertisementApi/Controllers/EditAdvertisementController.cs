@@ -40,7 +40,6 @@ namespace WebAdvertisementApi.Controllers
             editAdvertisement.ExpirationDate = expirationDate;
             var adv = await _db.Advertisements
                 .Include(i => i.User)
-                .Include(i => i.Image)
                 .FirstOrDefaultAsync(i=>i.Id == editAdvertisement.Id);
 
             if (adv == null)
@@ -63,17 +62,6 @@ namespace WebAdvertisementApi.Controllers
             };
 
             await _db.Advertisements.AddAsync(advertisement);
-
-            LibAdvertisementDB.Image img = new LibAdvertisementDB.Image
-            {
-                Img = editAdvertisement.Img,
-                Name = editAdvertisement.NameImg,
-                AdvertisementId = advertisement.Id,
-                Advertisement = advertisement
-            };
-
-            img.AdvertisementId = advertisement.Id;
-            await _db.Images.AddAsync(img);
 
             await _db.SaveChangesAsync();
 

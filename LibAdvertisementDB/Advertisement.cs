@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
-
 namespace LibAdvertisementDB
 {
     public class Advertisement
@@ -25,7 +23,7 @@ namespace LibAdvertisementDB
         [StringLength(1000, ErrorMessage = "Длина поля Text не должна превышать 1000 символов")]
         public string Text { get; set; }
 
-        public Image Image { get; set; }
+        public string ImageUrl { get; set; }
 
         [Range(0, 10, ErrorMessage = "Значение поля Rating должно быть в диапазоне от 0 до 10")]
         public int Rating { get; set; }
