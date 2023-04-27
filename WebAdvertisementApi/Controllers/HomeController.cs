@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using WebAdvertisementApi.Models;
 using static System.Net.Mime.MediaTypeNames;
-using System.Linq.Dynamic.Core;
+using LibBusinessLogic.Interface;
 
 namespace WebAdvertisementApi.Controllers
 {
@@ -15,12 +15,18 @@ namespace WebAdvertisementApi.Controllers
     [Route("[controller]")]
     public class HomeController : ControllerBase
     {
+        IInfo _info;
+        IOrderByAndSearch _orderByAndSearch;
+        IAdvertisementInteraction _advertisementInteraction;
         private readonly AdvertisementContext _db;
         private readonly ILogger<HomeController> _logger;
         private readonly IWebHostEnvironment _environment;
 
-        public HomeController(ILogger<HomeController> logger, AdvertisementContext db, IWebHostEnvironment environment)
+        public HomeController(ILogger<HomeController> logger, IAdvertisementInteraction advertisementInteraction,IOrderByAndSearch orderByAndSearch, IInfo info, AdvertisementContext db, IWebHostEnvironment environment)
         {
+            _advertisementInteraction = advertisementInteraction;
+            _orderByAndSearch = orderByAndSearch;
+            _info = info;
             _logger = logger;
             _db = db;
             _environment = environment;
@@ -35,10 +41,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> AllAdvertisements()
         {
-
-            var adv = await _db.Advertisements
-            .Include(i => i.User)
-            .ToListAsync();
+            var adv = await _info.AllAdvertisements();
 
             return Ok(adv);
         }
@@ -54,47 +57,11 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> MultiSort(string? search, string orderByQueryString)
         {
-            var orderParams = orderByQueryString.Trim().Split(',');
-            var propertyInfos = typeof(Advertisement).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var orderQueryBuilder = new StringBuilder();
-
-            foreach (var param in orderParams)
-            {
-                if (string.IsNullOrWhiteSpace(param))
-                    continue;
-
-                var propertyFromQueryName = param.Split(" ")[0];
-                var objectProperty = propertyInfos.FirstOrDefault(pi => pi.Name.Equals(propertyFromQueryName, StringComparison.InvariantCultureIgnoreCase));
-
-                if (objectProperty == null)
-                    continue;
-
-                var sortingOrder = param.EndsWith(" desc") ? "descending" : "ascending";
-
-                orderQueryBuilder.Append($"{objectProperty.Name.ToString()} {sortingOrder}, ");
-            }
-
-            var orderQuery = orderQueryBuilder.ToString().TrimEnd(',', ' ');
-
-            List<Advertisement> adv = new List<Advertisement>();
-            if (search != null)
-            {
-                adv = await _db.Advertisements
-                    .Include(i => i.User)
-                    .Where(i => i.Text.ToLower().Contains(search.ToLower())
-                        || i.Rating.ToString().ToLower().Contains(search.ToLower())
-                        || i.User.Name.ToLower().Contains(search.ToLower())
-                        || i.Created.Date.ToString().ToLower().Contains(search.ToLower())
-                        || i.Number.ToString().ToLower().Contains(search.ToLower()))
-                    .ToListAsync();
-            }
-
-            adv = await _db.Advertisements
-                .Include(i=>i.User)
-                .OrderBy(orderQuery).ToListAsync();
+            var adv = await _orderByAndSearch.MultiSort(search, orderByQueryString);
 
             return Ok(adv);
         }
+
         /// <summary>
         /// Получить отсартированный список объявлений по номеру по возрастанию
         /// </summary>
@@ -104,8 +71,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByNumber()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderBy(i => i.Number).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByNumber();
 
             return Ok(adv);
         }
@@ -119,8 +85,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByDescNumber()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderByDescending(i => i.Number).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByDescNumber();
 
             return Ok(adv);
         }
@@ -134,8 +99,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByRating()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderBy(i => i.Rating).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByRating();
 
             return Ok(adv);
         }
@@ -149,8 +113,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByDescRating()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderByDescending(i => i.Rating).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByDescRating();
 
             return Ok(adv);
         }
@@ -164,8 +127,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByText()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderBy(i => i.Text).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByText();
 
             return Ok(adv);
         }
@@ -179,8 +141,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByDescText()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderByDescending(i => i.Text).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByDescText();
 
             return Ok(adv);
         }
@@ -194,8 +155,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByCreated()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderBy(i => i.Created).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByCreated();
 
             return Ok(adv);
         }
@@ -209,8 +169,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByDescCreated()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderByDescending(i => i.Created).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByDescCreated();
 
             return Ok(adv);
         }
@@ -224,8 +183,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByUser()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderBy(i => i.User.Name).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByUser();
 
             return Ok(adv);
         }
@@ -239,8 +197,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> OrderByDescUser()
         {
-            var adv = await _db.Advertisements
-             .Include(i => i.User).OrderByDescending(i => i.User).ToListAsync();
+            var adv = await _orderByAndSearch.OrderByDescUser();
 
             return Ok(adv);
         }
@@ -258,7 +215,7 @@ namespace WebAdvertisementApi.Controllers
         [Produces("image/jpeg")]
         public async Task<IActionResult> GetImageResize(Guid id, int width, int height)
         {
-            var advertisement = await _db.Advertisements.FindAsync(id);
+            var advertisement = await _info.InfoAdvertisement(id);
             if (advertisement == null)
             {
                 return NotFound();
@@ -271,20 +228,8 @@ namespace WebAdvertisementApi.Controllers
                 return NotFound();
             }
 
-            using (var image = SixLabors.ImageSharp.Image.Load(imagePhysicalPath))
-            {
-                image.Mutate(x => x.Resize(new ResizeOptions
-                {
-                    Size = new Size(width, height),
-                    Mode = ResizeMode.Max
-                }));
-
-                using (var ms = new MemoryStream())
-                {
-                    image.Save(ms, new JpegEncoder());
-                    return File(ms.ToArray(), "image/jpeg");
-                }
-            }
+            var ms = _info.ImageResize(imagePhysicalPath, width, height);
+            return File(ms.ToArray(), "image/jpeg");
         }
 
         /// <summary>
@@ -297,14 +242,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Search(string str)
         {
-            var adv = await _db.Advertisements
-            .Include(i => i.User)
-            .Where(i => i.Text.ToLower().Contains(str.ToLower())
-                || i.Rating.ToString().ToLower().Contains(str.ToLower())
-                || i.User.Name.ToLower().Contains(str.ToLower())
-                || i.Created.Date.ToString().ToLower().Contains(str.ToLower())
-                || i.Number.ToString().ToLower().Contains(str.ToLower()))
-            .ToListAsync();
+            var adv = await _orderByAndSearch.Search(str);
 
             return Ok(adv);
         }
@@ -329,10 +267,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DateFiltering(MyDate myDate)
         {
-            var adv = await _db.Advertisements
-                .Include(i => i.User)
-                .Where(i => i.Created <= myDate.endDate.ToUniversalTime() && i.Created >= myDate.startDate.ToUniversalTime())
-                .ToListAsync();
+            var adv = await _orderByAndSearch.DateFiltering(myDate.startDate, myDate.endDate);
 
             return Ok(adv);
         }
@@ -347,11 +282,20 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var delete = await _db.Advertisements
-                .Include(i => i.User)
-                .Where(i => i.Id == id).ToListAsync();
-            _db.RemoveRange(delete);
-            await _db.SaveChangesAsync();
+
+            var delete = await _info.InfoAdvertisement(id);
+            if (delete == null)
+            {
+                return NotFound();
+            }
+            var imagePath = delete.ImageUrl;
+            var imagePhysicalPath = Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/'));
+            if (!System.IO.File.Exists(imagePhysicalPath))
+            {
+                return NotFound();
+            }
+
+            await _advertisementInteraction.Remove(delete, imagePhysicalPath);
 
             return Ok(new { Message = "Delete successfully" });
         }
@@ -396,17 +340,18 @@ namespace WebAdvertisementApi.Controllers
             dateTimeUtc = editAdvertisement.ExpirationDate.ToUniversalTime();
             DateTime expirationDate = dateTimeUtc;
             editAdvertisement.ExpirationDate = expirationDate;
-            var adv = await _db.Advertisements
-                .Include(i => i.User)
-                .FirstOrDefaultAsync(i => i.Id == editAdvertisement.Id);
+            var adv = await _info.InfoAdvertisement(editAdvertisement.Id);
 
             if (adv == null)
             {
                 return Ok(new { Message = "Edit error" });
-            }
-            _db.Advertisements.Remove(adv);
+            }        
 
             var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == editAdvertisement.UserId);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
             Advertisement advertisement = new Advertisement
             {
@@ -420,12 +365,11 @@ namespace WebAdvertisementApi.Controllers
                 ExpirationDate = editAdvertisement.ExpirationDate
             };
 
-            await _db.Advertisements.AddAsync(advertisement);
-
-            await _db.SaveChangesAsync();
+            await _advertisementInteraction.Edit(adv, advertisement);
 
             return Ok(new { Message = "Edit successfully" });
         }
+
         /// <summary>
         /// Добовляет новое объявление
         /// </summary>
@@ -434,7 +378,6 @@ namespace WebAdvertisementApi.Controllers
         [HttpPost("Add")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public async Task<IActionResult> Add([FromForm] AddAdvertisement addAdvertisement)
         {
             if (!ModelState.IsValid)
@@ -451,7 +394,11 @@ namespace WebAdvertisementApi.Controllers
 
             string imageUrl = "/images/" + fileName;
 
-            var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == addAdvertisement.UserId);
+            var user = await _info.GetUser(addAdvertisement.UserId);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
             Advertisement advertisement = new Advertisement
             {
@@ -470,32 +417,31 @@ namespace WebAdvertisementApi.Controllers
             DateTime expirationDate = dateTimeUtc;
             advertisement.ExpirationDate = expirationDate;
 
-            await _db.Advertisements.AddAsync(advertisement);
-            await _db.SaveChangesAsync();
+            await _advertisementInteraction.Add(advertisement);
 
             return Ok(new { Message = "Add successfully" });
         }
+
         /// <summary>
         /// Получает 1 объявление по id из бд
         /// </summary>
         /// <param name="id">Id объявления</param>
         /// <returns>Возвращает 1 объявление по id из бд</returns>
-        [HttpGet("Info")]
+        [HttpGet("GetInfo")]
         [ProducesResponseType(typeof(Advertisement), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Info(Guid id)
         {
-            var res = await _db.Advertisements
-                .Include(i => i.User)
-                .FirstOrDefaultAsync(i => i.Id == id);
+            var res = await _info.InfoAdvertisement(id);
             return Ok(res);
         }
+
         /// <summary>
         /// Получает 1 объявление по id из бд
         /// </summary>
         /// <param name="id">Id объявления в формате JSON</param>
         /// <returns>Возвращает 1 объявление по id из бд</returns>
-        [HttpGet("InfoJSON")]
+        [HttpGet("GetInfoJSON")]
         [ProducesResponseType(typeof(Advertisement), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> InfoJSON([FromBody] Guid id) => await Info(id);

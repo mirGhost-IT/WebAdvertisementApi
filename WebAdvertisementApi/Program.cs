@@ -1,4 +1,6 @@
 using LibAdvertisementDB;
+using LibBusinessLogic.Class;
+using LibBusinessLogic.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json.Serialization;
@@ -11,6 +13,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddTransient<IInfo, Info>();
+builder.Services.AddTransient<IOrderByAndSearch, OrderByAndSearch>();
+builder.Services.AddTransient<IAdvertisementInteraction, AdvertisementInteraction>();
 
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AdvertisementContext>(options =>
