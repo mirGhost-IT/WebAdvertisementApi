@@ -18,17 +18,22 @@ namespace WebAdvertisementApi.Controllers
         IInfo _info;
         IOrderByAndSearch _orderByAndSearch;
         IAdvertisementInteraction _advertisementInteraction;
-        private readonly AdvertisementContext _db;
+        IPagination _pagination;
         private readonly ILogger<HomeController> _logger;
         private readonly IWebHostEnvironment _environment;
 
-        public HomeController(ILogger<HomeController> logger, IAdvertisementInteraction advertisementInteraction,IOrderByAndSearch orderByAndSearch, IInfo info, AdvertisementContext db, IWebHostEnvironment environment)
+        public HomeController(ILogger<HomeController> logger,
+            IPagination pagination,
+            IAdvertisementInteraction advertisementInteraction,
+            IOrderByAndSearch orderByAndSearch, IInfo info, 
+            AdvertisementContext db, 
+            IWebHostEnvironment environment)
         {
+            _pagination = pagination;
             _advertisementInteraction = advertisementInteraction;
             _orderByAndSearch = orderByAndSearch;
             _info = info;
             _logger = logger;
-            _db = db;
             _environment = environment;
         }
 
@@ -42,7 +47,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> AllAdvertisements()
         {
             var adv = await _info.AllAdvertisements();
-
+            adv = _pagination.SelectionPage(adv);
             return Ok(adv);
         }
 
@@ -58,6 +63,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> MultiSort(string? search, string orderByQueryString)
         {
             var adv = await _orderByAndSearch.MultiSort(search, orderByQueryString);
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -72,6 +78,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByNumber()
         {
             var adv = await _orderByAndSearch.OrderByNumber();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -86,6 +93,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByDescNumber()
         {
             var adv = await _orderByAndSearch.OrderByDescNumber();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -100,6 +108,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByRating()
         {
             var adv = await _orderByAndSearch.OrderByRating();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -114,6 +123,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByDescRating()
         {
             var adv = await _orderByAndSearch.OrderByDescRating();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -128,6 +138,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByText()
         {
             var adv = await _orderByAndSearch.OrderByText();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -142,6 +153,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByDescText()
         {
             var adv = await _orderByAndSearch.OrderByDescText();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -156,6 +168,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByCreated()
         {
             var adv = await _orderByAndSearch.OrderByCreated();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -170,6 +183,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByDescCreated()
         {
             var adv = await _orderByAndSearch.OrderByDescCreated();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -184,6 +198,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByUser()
         {
             var adv = await _orderByAndSearch.OrderByUser();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -198,6 +213,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> OrderByDescUser()
         {
             var adv = await _orderByAndSearch.OrderByDescUser();
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -243,6 +259,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> Search(string str)
         {
             var adv = await _orderByAndSearch.Search(str);
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -268,6 +285,7 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> DateFiltering(MyDate myDate)
         {
             var adv = await _orderByAndSearch.DateFiltering(myDate.startDate, myDate.endDate);
+            adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
         }
@@ -345,9 +363,9 @@ namespace WebAdvertisementApi.Controllers
             if (adv == null)
             {
                 return Ok(new { Message = "Edit error" });
-            }        
+            }
 
-            var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == editAdvertisement.UserId);
+            var user = await _info.GetUser(editAdvertisement.UserId);
             if (user == null)
             {
                 return NotFound();
@@ -441,10 +459,58 @@ namespace WebAdvertisementApi.Controllers
         /// </summary>
         /// <param name="id">Id объявления в формате JSON</param>
         /// <returns>Возвращает 1 объявление по id из бд</returns>
-        [HttpGet("GetInfoJSON")]
+        [HttpPost("GetInfoJSON")]
         [ProducesResponseType(typeof(Advertisement), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> InfoJSON([FromBody] Guid id) => await Info(id);
+
+        /// <summary>
+        /// Поставить новое значение страницы 
+        /// </summary>
+        /// <param name="number">Номер страницы</param>
+        /// <returns>Возвращает строку подтверждения успеха</returns>
+        [HttpGet("NewPage")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult NewPage(int number)
+        {
+            _pagination.EditPage(number);
+            return Ok(new { Message = "All good" });
+        }
+
+        /// <summary>
+        /// Поставить новое значение страницы 
+        /// </summary>
+        /// <param name="number">Номер страницы в формате JSON</param>
+        /// <returns>Возвращает строку подтверждения успеха</returns>
+        [HttpPost("NewPageJSON")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult NewPageJSON([FromBody] int number) => NewPage(number);
+
+        /// <summary>
+        /// Поставить новое значение количество объявлений на странице 
+        /// </summary>
+        /// <param name="number">Количество объявлений на странице</param>
+        /// <returns>Возвращает строку подтверждения успеха</returns>
+        [HttpGet("NewCount")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult NewCount(int number)
+        {
+            _pagination.EditCount(number);
+            return Ok(new { Message = "All good" });
+        }
+
+        /// <summary>
+        /// Поставить новое значение количество объявлений на странице 
+        /// </summary>
+        /// <param name="number">Количество объявлений на странице в формате JSON</param>
+        /// <returns>Возвращает строку подтверждения успеха</returns>
+        [HttpPost("NewCountJSON")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult NewCountJSON([FromBody] int number) => NewCount(number);
     }
 }
 

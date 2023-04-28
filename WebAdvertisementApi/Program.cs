@@ -16,6 +16,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IInfo, Info>();
 builder.Services.AddTransient<IOrderByAndSearch, OrderByAndSearch>();
 builder.Services.AddTransient<IAdvertisementInteraction, AdvertisementInteraction>();
+builder.Services.AddTransient<IPagination, Pagination>();
 
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AdvertisementContext>(options =>
