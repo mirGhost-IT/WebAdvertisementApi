@@ -21,12 +21,7 @@ namespace LibBusinessLogic.Class
             await _db.SaveChangesAsync();
         }
 
-        public async Task Edit(Advertisement OldAdvertisement, Advertisement NewAdvertisement)
-        {
-            _db.Advertisements.Remove(OldAdvertisement);
-            await _db.Advertisements.AddAsync(NewAdvertisement);
-            await _db.SaveChangesAsync();
-        }
+
 
         public async Task Remove(Advertisement advertisement, string imagePhysicalPath)
         {     

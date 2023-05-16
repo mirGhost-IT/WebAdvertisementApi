@@ -8,6 +8,7 @@ using System.Text;
 using WebAdvertisementApi.Models;
 using static System.Net.Mime.MediaTypeNames;
 using LibBusinessLogic.Interface;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace WebAdvertisementApi.Controllers
 {
@@ -21,6 +22,7 @@ namespace WebAdvertisementApi.Controllers
         IPagination _pagination;
         private readonly ILogger<HomeController> _logger;
         private readonly IWebHostEnvironment _environment;
+        AdvertisementContext _db;
 
         public HomeController(ILogger<HomeController> logger,
             IPagination pagination,
@@ -29,6 +31,7 @@ namespace WebAdvertisementApi.Controllers
             AdvertisementContext db, 
             IWebHostEnvironment environment)
         {
+            _db = db;
             _pagination = pagination;
             _advertisementInteraction = advertisementInteraction;
             _orderByAndSearch = orderByAndSearch;
@@ -358,32 +361,19 @@ namespace WebAdvertisementApi.Controllers
             dateTimeUtc = editAdvertisement.ExpirationDate.ToUniversalTime();
             DateTime expirationDate = dateTimeUtc;
             editAdvertisement.ExpirationDate = expirationDate;
-            var adv = await _info.InfoAdvertisement(editAdvertisement.Id);
 
-            if (adv == null)
-            {
-                return Ok(new { Message = "Edit error" });
-            }
-
-            var user = await _info.GetUser(editAdvertisement.UserId);
-            if (user == null)
+            Advertisement advertisement = await _info.InfoAdvertisement(editAdvertisement.Id);
+            if (advertisement == null)
             {
                 return NotFound();
             }
 
-            Advertisement advertisement = new Advertisement
-            {
-                Text = editAdvertisement.Text,
-                Number = editAdvertisement.Number,
-                Rating = editAdvertisement.Rating,
-                UserId = editAdvertisement.UserId,
-                ImageUrl = imageUrl,
-                User = user,
-                Created = editAdvertisement.Created,
-                ExpirationDate = editAdvertisement.ExpirationDate
-            };
+            advertisement.Text = editAdvertisement.Text;
+            advertisement.ImageUrl = imageUrl;
+            advertisement.Rating = editAdvertisement.Rating;
+            advertisement.ExpirationDate = editAdvertisement.ExpirationDate;
 
-            await _advertisementInteraction.Edit(adv, advertisement);
+            await _db.SaveChangesAsync();
 
             return Ok(new { Message = "Edit successfully" });
         }
