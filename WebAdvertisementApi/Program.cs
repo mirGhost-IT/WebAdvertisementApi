@@ -4,6 +4,7 @@ using LibBusinessLogic.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json.Serialization;
+using WebAdvertisementApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseMiddleware<ResizeImageMiddleware>();
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>

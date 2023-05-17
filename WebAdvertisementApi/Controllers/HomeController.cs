@@ -69,157 +69,7 @@ namespace WebAdvertisementApi.Controllers
             adv = _pagination.SelectionPage(adv);
 
             return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по номеру по возрастанию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по номеру из бд</returns>
-        [HttpGet("GetOrderByNumber")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByNumber()
-        {
-            var adv = await _orderByAndSearch.OrderByNumber();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по номеру по убыванию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по номеру из бд</returns>
-        [HttpGet("GetOrderByDescNumber")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByDescNumber()
-        {
-            var adv = await _orderByAndSearch.OrderByDescNumber();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по рейтингу по возрастанию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по рейтингу из бд</returns>
-        [HttpGet("GetOrderByRating")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByRating()
-        {
-            var adv = await _orderByAndSearch.OrderByRating();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по рейтингу по убыванию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по рейтингу из бд</returns>
-        [HttpGet("GetOrderByDescRating")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByDescRating()
-        {
-            var adv = await _orderByAndSearch.OrderByDescRating();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по тексту по возрастанию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по тексту из бд</returns>
-        [HttpGet("GetOrderByText")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByText()
-        {
-            var adv = await _orderByAndSearch.OrderByText();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по тексту по убыванию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по номеру из бд</returns>
-        [HttpGet("GetOrderByDescText")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByDescText()
-        {
-            var adv = await _orderByAndSearch.OrderByDescText();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по дате создания по возрастанию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по дате создания из бд</returns>
-        [HttpGet("GetOrderByCreated")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByCreated()
-        {
-            var adv = await _orderByAndSearch.OrderByCreated();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по дате создания по убыванию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по дате создания из бд</returns>
-        [HttpGet("GetOrderByDescCreated")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByDescCreated()
-        {
-            var adv = await _orderByAndSearch.OrderByDescCreated();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по пользователю по возрастанию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по пользователю из бд</returns>
-        [HttpGet("GetOrderByUser")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByUser()
-        {
-            var adv = await _orderByAndSearch.OrderByUser();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить отсартированный список объявлений по пользователю по убыванию
-        /// </summary>
-        /// <returns>Возврашает отсартированный список объявлений по пользователю из бд</returns>
-        [HttpGet("GetOrderByDescUser")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> OrderByDescUser()
-        {
-            var adv = await _orderByAndSearch.OrderByDescUser();
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
+        }     
 
         /// <summary>
         /// Получить изображение
@@ -228,7 +78,7 @@ namespace WebAdvertisementApi.Controllers
         /// <param name="width">Ширина изображения</param>
         /// <param name="height">Высота изображения</param>
         /// <returns>Возвращает изображение определенного объявления из бд заданных размеров</returns>
-        [HttpGet("GetImageResize")]
+        /*[HttpGet("GetImageResize")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(SixLabors.ImageSharp.Image), StatusCodes.Status200OK)]
         [Produces("image/jpeg")]
@@ -249,7 +99,7 @@ namespace WebAdvertisementApi.Controllers
 
             var ms = _info.ImageResize(imagePhysicalPath, width, height);
             return File(ms.ToArray(), "image/jpeg");
-        }
+        }*/
 
         /// <summary>
         /// Получить фильтрацию по поиску
