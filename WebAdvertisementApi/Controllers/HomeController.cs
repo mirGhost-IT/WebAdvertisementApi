@@ -72,36 +72,6 @@ namespace WebAdvertisementApi.Controllers
         }     
 
         /// <summary>
-        /// Получить изображение
-        /// </summary>
-        /// <param name="id">Id объявления</param>
-        /// <param name="width">Ширина изображения</param>
-        /// <param name="height">Высота изображения</param>
-        /// <returns>Возвращает изображение определенного объявления из бд заданных размеров</returns>
-        /*[HttpGet("GetImageResize")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(SixLabors.ImageSharp.Image), StatusCodes.Status200OK)]
-        [Produces("image/jpeg")]
-        public async Task<IActionResult> GetImageResize(Guid id, int width, int height)
-        {
-            var advertisement = await _info.InfoAdvertisement(id);
-            if (advertisement == null)
-            {
-                return NotFound();
-            }
-
-            var imagePath = advertisement.ImageUrl;
-            var imagePhysicalPath = Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/'));
-            if (!System.IO.File.Exists(imagePhysicalPath))
-            {
-                return NotFound();
-            }
-
-            var ms = _info.ImageResize(imagePhysicalPath, width, height);
-            return File(ms.ToArray(), "image/jpeg");
-        }*/
-
-        /// <summary>
         /// Получить фильтрацию по поиску
         /// </summary>
         /// <param name="str">Строка поиска</param>

@@ -1,27 +1,26 @@
-﻿using LibBusinessLogic.Interface;
+﻿using LibAdvertisementDB;
+using LibBusinessLogic.Interface;
 using System.Net;
 using WebAdvertisementApi.Controllers;
 
 namespace WebAdvertisementApi.Middleware
 {
-    public class ResizeImageMiddleware
+    public class ResizeImageMiddleware : IMiddleware
     {
-        private IInfo _info;
+        public IInfo _info;
         private readonly IWebHostEnvironment _environment;
-        public ResizeImageMiddleware(RequestDelegate next, IInfo info, IWebHostEnvironment environment)
+        public ResizeImageMiddleware(IInfo info, IWebHostEnvironment environment)
         {
             _environment = environment;
             _info = info;
-            Next = next;
+
         }
 
-        public RequestDelegate Next { get; }
-
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
 
             Guid id = Guid.Parse(context.Request.Query["id"]);
-            int height =  int.Parse(context.Request.Query["height"]);
+            int height = int.Parse(context.Request.Query["height"]);
             int width = int.Parse(context.Request.Query["width"]);
 
             var advertisement = await _info.InfoAdvertisement(id);
@@ -42,6 +41,7 @@ namespace WebAdvertisementApi.Middleware
             var ms = _info.ImageResize(imagePhysicalPath, width, height);
             context.Response.ContentType = "image/jpeg";
             await ms.CopyToAsync(context.Response.Body);
+            await next(context);
         }
     }
 }

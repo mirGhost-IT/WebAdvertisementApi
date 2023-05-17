@@ -14,10 +14,6 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddTransient<IInfo, Info>();
-builder.Services.AddTransient<IOrderByAndSearch, OrderByAndSearch>();
-builder.Services.AddTransient<IAdvertisementInteraction, AdvertisementInteraction>();
-builder.Services.AddTransient<IPagination, Pagination>();
 
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AdvertisementContext>(options =>
@@ -26,6 +22,12 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 });
+
+builder.Services.AddTransient<ResizeImageMiddleware>();
+builder.Services.AddTransient<IInfo, Info>();
+builder.Services.AddTransient<IOrderByAndSearch, OrderByAndSearch>();
+builder.Services.AddTransient<IAdvertisementInteraction, AdvertisementInteraction>();
+builder.Services.AddTransient<IPagination, Pagination>();
 
 var app = builder.Build();
 
