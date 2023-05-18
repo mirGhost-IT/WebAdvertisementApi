@@ -18,30 +18,8 @@ namespace LibBusinessLogic.Class
         {
             _db = db;
         }
-        public async Task<List<Advertisement>> MultiSort(string? search, string orderByQueryString)
+        public async Task<List<Advertisement>> MultiSort(string? search, string? orderByQueryString, DateTime? startDate, DateTime? endDate)
         {
-            var orderParams = orderByQueryString.Trim().Split(',');
-            var propertyInfos = typeof(Advertisement).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var orderQueryBuilder = new StringBuilder();
-
-            foreach (var param in orderParams)
-            {
-                if (string.IsNullOrWhiteSpace(param))
-                    continue;
-
-                var propertyFromQueryName = param.Split(" ")[0];
-                var objectProperty = propertyInfos.FirstOrDefault(pi => pi.Name.Equals(propertyFromQueryName, StringComparison.InvariantCultureIgnoreCase));
-
-                if (objectProperty == null)
-                    continue;
-
-                var sortingOrder = param.EndsWith(" desc") ? "descending" : "ascending";
-
-                orderQueryBuilder.Append($"{objectProperty.Name.ToString()} {sortingOrder}, ");
-            }
-
-            var orderQuery = orderQueryBuilder.ToString().TrimEnd(',', ' ');
-
             List<Advertisement> adv = new List<Advertisement>();
             if (search != null)
             {
@@ -52,39 +30,61 @@ namespace LibBusinessLogic.Class
                         || i.User.Name.ToLower().Contains(search.ToLower())
                         || i.Created.Date.ToString().ToLower().Contains(search.ToLower())
                         || i.Number.ToString().ToLower().Contains(search.ToLower()))
+                    .PaginationAdv()
                     .ToListAsync();
-            }
+            }                   
 
-            adv = await _db.Advertisements
+            if (orderByQueryString!=null)
+            {
+                var orderParams = orderByQueryString.Trim().Split(',');
+                var propertyInfos = typeof(Advertisement).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                var orderQueryBuilder = new StringBuilder();
+
+                foreach (var param in orderParams)
+                {
+                    if (string.IsNullOrWhiteSpace(param))
+                        continue;
+
+                    var propertyFromQueryName = param.Split(" ")[0];
+                    var objectProperty = propertyInfos.FirstOrDefault(pi => pi.Name.Equals(propertyFromQueryName, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (objectProperty == null)
+                        continue;
+
+                    var sortingOrder = param.EndsWith(" desc") ? "descending" : "ascending";
+
+                    orderQueryBuilder.Append($"{objectProperty.Name.ToString()} {sortingOrder}, ");
+                }
+
+                var orderQuery = orderQueryBuilder.ToString().TrimEnd(',', ' ');
+
+                adv = await _db.Advertisements
                 .Include(i => i.User)
+                .PaginationAdv()
                 .OrderBy(orderQuery).ToListAsync();
+            }
+            
+            if (startDate!=null && endDate!= null)
+            {
+                try
+                {
 
+                    adv = await _db.Advertisements
+                    .Include(i => i.User)
+                    .PaginationAdv()
+                    .Where(i => i.Created <= DateTime.Parse(endDate.ToString()).ToUniversalTime() && i.Created >= DateTime.Parse(startDate.ToString()).ToUniversalTime())
+                    .ToListAsync();
+                }
+                catch (Exception)
+                {
+                }               
+                       
+            }
             return adv;
         }
 
-        public async Task<List<Advertisement>> Search(string str)
-        {
-            var adv = await _db.Advertisements
-            .Include(i => i.User)
-            .Where(i => i.Text.ToLower().Contains(str.ToLower())
-                || i.Rating.ToString().ToLower().Contains(str.ToLower())
-                || i.User.Name.ToLower().Contains(str.ToLower())
-                || i.Created.Date.ToString().ToLower().Contains(str.ToLower())
-                || i.Number.ToString().ToLower().Contains(str.ToLower()))
-            .ToListAsync();
 
-            return adv;
-        }
 
-        public async Task<List<Advertisement>> DateFiltering(DateTime startDate, DateTime endDate)
-        {
-            var adv = await _db.Advertisements
-                .Include(i => i.User)
-                .Where(i => i.Created <= endDate.ToUniversalTime() && i.Created >= startDate.ToUniversalTime())
-                .ToListAsync();
-
-            return adv;
-        }
 
     }
 }

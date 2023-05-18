@@ -18,30 +18,37 @@ namespace WebAdvertisementApi.Middleware
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-
-            Guid id = Guid.Parse(context.Request.Query["id"]);
-            int height = int.Parse(context.Request.Query["height"]);
-            int width = int.Parse(context.Request.Query["width"]);
-
-            var advertisement = await _info.InfoAdvertisement(id);
-            if (advertisement == null)
+            try
             {
-                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
+                Guid id = Guid.Parse(context.Request.Query["id"]);
+                int height = int.Parse(context.Request.Query["height"]);
+                int width = int.Parse(context.Request.Query["width"]);
 
-            var imagePath = advertisement.ImageUrl;
-            var imagePhysicalPath = Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/'));
-            if (!System.IO.File.Exists(imagePhysicalPath))
+                var advertisement = await _info.InfoAdvertisement(id);
+                if (advertisement == null)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                var imagePath = advertisement.ImageUrl;
+                var imagePhysicalPath = Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/'));
+                if (!System.IO.File.Exists(imagePhysicalPath))
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                var ms = _info.ImageResize(imagePhysicalPath, width, height);
+                context.Response.ContentType = "image/jpeg";
+                await ms.CopyToAsync(context.Response.Body);
+                await next(context);
+            }
+            catch (Exception ex)
             {
-                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
+                await next(context);
             }
-
-            var ms = _info.ImageResize(imagePhysicalPath, width, height);
-            context.Response.ContentType = "image/jpeg";
-            await ms.CopyToAsync(context.Response.Body);
-            await next(context);
+           
         }
     }
 }

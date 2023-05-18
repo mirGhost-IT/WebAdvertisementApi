@@ -9,6 +9,7 @@ using WebAdvertisementApi.Models;
 using static System.Net.Mime.MediaTypeNames;
 using LibBusinessLogic.Interface;
 using Microsoft.Extensions.Caching.Distributed;
+using LibBusinessLogic.Class;
 
 namespace WebAdvertisementApi.Controllers
 {
@@ -19,20 +20,20 @@ namespace WebAdvertisementApi.Controllers
         IInfo _info;
         IOrderByAndSearch _orderByAndSearch;
         IAdvertisementInteraction _advertisementInteraction;
-        IPagination _pagination;
+
         private readonly ILogger<HomeController> _logger;
         private readonly IWebHostEnvironment _environment;
         AdvertisementContext _db;
 
         public HomeController(ILogger<HomeController> logger,
-            IPagination pagination,
+
             IAdvertisementInteraction advertisementInteraction,
             IOrderByAndSearch orderByAndSearch, IInfo info, 
             AdvertisementContext db, 
             IWebHostEnvironment environment)
         {
             _db = db;
-            _pagination = pagination;
+
             _advertisementInteraction = advertisementInteraction;
             _orderByAndSearch = orderByAndSearch;
             _info = info;
@@ -50,7 +51,6 @@ namespace WebAdvertisementApi.Controllers
         public async Task<IActionResult> AllAdvertisements()
         {
             var adv = await _info.AllAdvertisements();
-            adv = _pagination.SelectionPage(adv);
             return Ok(adv);
         }
 
@@ -63,55 +63,17 @@ namespace WebAdvertisementApi.Controllers
         [HttpGet("GetMultiSort")]
         [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> MultiSort(string? search, string orderByQueryString)
-        {
-            var adv = await _orderByAndSearch.MultiSort(search, orderByQueryString);
-            adv = _pagination.SelectionPage(adv);
+        public async Task<IActionResult> MultiSort(string? search, string? orderByQueryString, DateTime? startDate, DateTime? endDate)
+        { 
+            var adv = await _orderByAndSearch.MultiSort(search, orderByQueryString, startDate, endDate);
+            if (adv.Count() == 0)
+            {
+                return NotFound();
+            }
 
             return Ok(adv);
         }     
 
-        /// <summary>
-        /// Получить фильтрацию по поиску
-        /// </summary>
-        /// <param name="str">Строка поиска</param>
-        /// <returns>Возврашает список объявлений отфильтрованных по поиску из бд</returns>
-        [HttpGet("Search")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Search(string str)
-        {
-            var adv = await _orderByAndSearch.Search(str);
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
-
-        /// <summary>
-        /// Получить фильтрацию по поиску
-        /// </summary>
-        /// <param name="str">Строка поиска в формате JSON</param>
-        /// <returns>Возврашает список объявлений отфильтрованных по поиску из бд</returns>
-        [HttpPost("SearchJSON")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> SearchJSON([FromBody] string str) => await Search(str);
-
-        /// <summary>
-        /// Получить фильтрацию по дате
-        /// </summary>
-        /// <param name="myDate">Даты с какого по какое в формате JSON</param>
-        /// <returns>Возврашает список объявлений отфильтрованных по дате из бд</returns>
-        [HttpGet("DateFiltering")]
-        [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DateFiltering(MyDate myDate)
-        {
-            var adv = await _orderByAndSearch.DateFiltering(myDate.startDate, myDate.endDate);
-            adv = _pagination.SelectionPage(adv);
-
-            return Ok(adv);
-        }
 
         /// <summary>
         /// Удаляет объявление по id из бд
@@ -284,7 +246,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult NewPage(int number)
         {
-            _pagination.EditPage(number);
+            Pagination.EditPage(number);
             return Ok(new { Message = "All good" });
         }
 
@@ -308,7 +270,7 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult NewCount(int number)
         {
-            _pagination.EditCount(number);
+            Pagination.EditCount(number);
             return Ok(new { Message = "All good" });
         }
 

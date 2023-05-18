@@ -20,14 +20,17 @@ namespace LibBusinessLogic.Class
         public async Task<List<Advertisement>> AllAdvertisements()
         {
             var adv = await _db.Advertisements
-            .Include(i => i.User)
+                .Include(a => a.User)
+                .PaginationAdv()    
             .ToListAsync();
+
             return adv;
         }
 
         public async Task<User> GetUser(Guid id)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(i => i.Id == id);
+            var user = await _db.Users
+                .FirstOrDefaultAsync(i => i.Id == id);
             return user;
         }
 
@@ -52,6 +55,7 @@ namespace LibBusinessLogic.Class
         public async Task<Advertisement> InfoAdvertisement(Guid id)
         {
             var res = await _db.Advertisements
+
                 .Include(i => i.User)
                 .FirstOrDefaultAsync(i => i.Id == id);
             return res;

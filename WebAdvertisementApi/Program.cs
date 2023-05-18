@@ -8,6 +8,11 @@ using WebAdvertisementApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddTransient<ResizeImageMiddleware>();
+builder.Services.AddTransient<IInfo, Info>();
+builder.Services.AddTransient<IOrderByAndSearch, OrderByAndSearch>();
+builder.Services.AddTransient<IAdvertisementInteraction, AdvertisementInteraction>();
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -23,11 +28,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 });
 
-builder.Services.AddTransient<ResizeImageMiddleware>();
-builder.Services.AddTransient<IInfo, Info>();
-builder.Services.AddTransient<IOrderByAndSearch, OrderByAndSearch>();
-builder.Services.AddTransient<IAdvertisementInteraction, AdvertisementInteraction>();
-builder.Services.AddTransient<IPagination, Pagination>();
+
 
 var app = builder.Build();
 
