@@ -21,7 +21,7 @@ namespace LibBusinessLogic.Class
         {
             var adv = await _db.Advertisements
                 .Include(a => a.User)
-                .PaginationAdv()    
+                .PaginationAdv(page: 1, count: 10)    
             .ToListAsync();
 
             return adv;

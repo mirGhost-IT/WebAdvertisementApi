@@ -30,7 +30,7 @@ namespace LibBusinessLogic.Class
                         || i.User.Name.ToLower().Contains(search.ToLower())
                         || i.Created.Date.ToString().ToLower().Contains(search.ToLower())
                         || i.Number.ToString().ToLower().Contains(search.ToLower()))
-                    .PaginationAdv()
+                    .PaginationAdv(page: 1, count: 10)
                     .ToListAsync();
             }                   
 
@@ -60,7 +60,7 @@ namespace LibBusinessLogic.Class
 
                 adv = await _db.Advertisements
                 .Include(i => i.User)
-                .PaginationAdv()
+                .PaginationAdv(page: 1, count: 10)
                 .OrderBy(orderQuery).ToListAsync();
             }
             
@@ -71,7 +71,7 @@ namespace LibBusinessLogic.Class
 
                     adv = await _db.Advertisements
                     .Include(i => i.User)
-                    .PaginationAdv()
+                    .PaginationAdv(page: 1, count: 10)
                     .Where(i => i.Created <= DateTime.Parse(endDate.ToString()).ToUniversalTime() && i.Created >= DateTime.Parse(startDate.ToString()).ToUniversalTime())
                     .ToListAsync();
                 }

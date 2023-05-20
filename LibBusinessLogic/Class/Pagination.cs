@@ -11,22 +11,10 @@ namespace LibBusinessLogic.Class
 {
     public static class Pagination
     {
-        public static int Page { get; set; } = 1;
-        public static int Count { get; set; } = 10;
-
-        public static void EditCount(int count)
+        public static IQueryable<T> PaginationAdv<T>(this IQueryable<T> query, int page, int count)
         {
-            Count = count;
-        }
-
-        public static void EditPage(int page)
-        {
-            Page = page;
-        }
-        public static IQueryable<Advertisement> PaginationAdv(this IQueryable<Advertisement> query)
-        {
-            return query.Skip(Count * (Page - 1))
-                .Take(Count);          
+            return query.Skip(count * (page - 1))
+                .Take(count);          
         }
 
     }

@@ -235,54 +235,6 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(typeof(Advertisement), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> InfoJSON([FromBody] Guid id) => await Info(id);
-
-        /// <summary>
-        /// Поставить новое значение страницы 
-        /// </summary>
-        /// <param name="number">Номер страницы</param>
-        /// <returns>Возвращает строку подтверждения успеха</returns>
-        [HttpGet("NewPage")]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult NewPage(int number)
-        {
-            Pagination.EditPage(number);
-            return Ok(new { Message = "All good" });
-        }
-
-        /// <summary>
-        /// Поставить новое значение страницы 
-        /// </summary>
-        /// <param name="number">Номер страницы в формате JSON</param>
-        /// <returns>Возвращает строку подтверждения успеха</returns>
-        [HttpPost("NewPageJSON")]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult NewPageJSON([FromBody] int number) => NewPage(number);
-
-        /// <summary>
-        /// Поставить новое значение количество объявлений на странице 
-        /// </summary>
-        /// <param name="number">Количество объявлений на странице</param>
-        /// <returns>Возвращает строку подтверждения успеха</returns>
-        [HttpGet("NewCount")]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult NewCount(int number)
-        {
-            Pagination.EditCount(number);
-            return Ok(new { Message = "All good" });
-        }
-
-        /// <summary>
-        /// Поставить новое значение количество объявлений на странице 
-        /// </summary>
-        /// <param name="number">Количество объявлений на странице в формате JSON</param>
-        /// <returns>Возвращает строку подтверждения успеха</returns>
-        [HttpPost("NewCountJSON")]
-        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult NewCountJSON([FromBody] int number) => NewCount(number);
     }
 }
 
