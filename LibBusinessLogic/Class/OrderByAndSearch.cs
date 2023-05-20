@@ -11,33 +11,23 @@ using System.Linq.Dynamic.Core;
 
 namespace LibBusinessLogic.Class
 {
-    public class OrderByAndSearch : IOrderByAndSearch
+    public static class OrderByAndSearch
     {
-        private readonly AdvertisementContext _db;
-        public OrderByAndSearch(AdvertisementContext db)
+        public static async Task<List<T>> MultiSort<T>(this IQueryable<T> query, string? search, string? orderByQueryString, DateTime? startDate, DateTime? endDate) where T : Advertisement
         {
-            _db = db;
-        }
-        public async Task<List<Advertisement>> MultiSort(string? search, string? orderByQueryString, DateTime? startDate, DateTime? endDate)
-        {
-            List<Advertisement> adv = new List<Advertisement>();
             if (search != null)
             {
-                adv = await _db.Advertisements
-                    .Include(i => i.User)
-                    .Where(i => i.Text.ToLower().Contains(search.ToLower())
-                        || i.Rating.ToString().ToLower().Contains(search.ToLower())
-                        || i.User.Name.ToLower().Contains(search.ToLower())
-                        || i.Created.Date.ToString().ToLower().Contains(search.ToLower())
-                        || i.Number.ToString().ToLower().Contains(search.ToLower()))
-                    .PaginationAdv(page: 1, count: 10)
-                    .ToListAsync();
-            }                   
+                query = query.Where(i => i.Text.ToLower().Contains(search.ToLower())
+                    || i.Rating.ToString().ToLower().Contains(search.ToLower())
+                    || i.User.Name.ToLower().Contains(search.ToLower())
+                    || i.Created.Date.ToString().ToLower().Contains(search.ToLower())
+                    || i.Number.ToString().ToLower().Contains(search.ToLower()));
+            }
 
-            if (orderByQueryString!=null)
+            if (orderByQueryString != null)
             {
                 var orderParams = orderByQueryString.Trim().Split(',');
-                var propertyInfos = typeof(Advertisement).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                var propertyInfos = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
                 var orderQueryBuilder = new StringBuilder();
 
                 foreach (var param in orderParams)
@@ -58,33 +48,21 @@ namespace LibBusinessLogic.Class
 
                 var orderQuery = orderQueryBuilder.ToString().TrimEnd(',', ' ');
 
-                adv = await _db.Advertisements
-                .Include(i => i.User)
-                .PaginationAdv(page: 1, count: 10)
-                .OrderBy(orderQuery).ToListAsync();
+                query = query.OrderBy(orderQuery);
             }
-            
-            if (startDate!=null && endDate!= null)
+
+            if (startDate != null && endDate != null)
             {
                 try
                 {
-
-                    adv = await _db.Advertisements
-                    .Include(i => i.User)
-                    .PaginationAdv(page: 1, count: 10)
-                    .Where(i => i.Created <= DateTime.Parse(endDate.ToString()).ToUniversalTime() && i.Created >= DateTime.Parse(startDate.ToString()).ToUniversalTime())
-                    .ToListAsync();
+                    query = query.Where(i => i.Created <= DateTime.Parse(endDate.ToString()).ToUniversalTime() && i.Created >= DateTime.Parse(startDate.ToString()).ToUniversalTime());
                 }
                 catch (Exception)
                 {
-                }               
-                       
+                }
             }
-            return adv;
+
+            return await query.PaginationAdv(page: 1, count: 10).ToListAsync();
         }
-
-
-
-
     }
 }

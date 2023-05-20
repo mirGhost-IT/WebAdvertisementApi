@@ -18,24 +18,19 @@ namespace WebAdvertisementApi.Controllers
     public class HomeController : ControllerBase
     {
         IInfo _info;
-        IOrderByAndSearch _orderByAndSearch;
         IAdvertisementInteraction _advertisementInteraction;
-
         private readonly ILogger<HomeController> _logger;
         private readonly IWebHostEnvironment _environment;
         AdvertisementContext _db;
 
         public HomeController(ILogger<HomeController> logger,
-
             IAdvertisementInteraction advertisementInteraction,
-            IOrderByAndSearch orderByAndSearch, IInfo info, 
+            IInfo info, 
             AdvertisementContext db, 
             IWebHostEnvironment environment)
         {
             _db = db;
-
             _advertisementInteraction = advertisementInteraction;
-            _orderByAndSearch = orderByAndSearch;
             _info = info;
             _logger = logger;
             _environment = environment;
@@ -64,8 +59,10 @@ namespace WebAdvertisementApi.Controllers
         [ProducesResponseType(typeof(IEnumerable<Advertisement>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> MultiSort(string? search, string? orderByQueryString, DateTime? startDate, DateTime? endDate)
-        { 
-            var adv = await _orderByAndSearch.MultiSort(search, orderByQueryString, startDate, endDate);
+        {
+            var adv = await _db.Advertisements
+            .Include(i => i.User)
+            .MultiSort(search, orderByQueryString, startDate, endDate);
             if (adv.Count() == 0)
             {
                 return NotFound();

@@ -10,7 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddTransient<ResizeImageMiddleware>();
 builder.Services.AddTransient<IInfo, Info>();
-builder.Services.AddTransient<IOrderByAndSearch, OrderByAndSearch>();
 builder.Services.AddTransient<IAdvertisementInteraction, AdvertisementInteraction>();
 
 // Add services to the container.
