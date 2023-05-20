@@ -41,7 +41,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseMiddleware<ResizeImageMiddleware>();
+app.MapWhen(context =>
+        context.Request.Path.StartsWithSegments("/imgResize") &&
+        context.Request.Query.ContainsKey("id") &&
+        context.Request.Query.ContainsKey("height") &&
+        context.Request.Query.ContainsKey("width"), builder =>
+        {
+            builder.UseMiddleware<ResizeImageMiddleware>();              
+        });
+
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
